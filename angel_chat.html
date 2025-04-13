@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>엔젤 로보틱스 챗봇</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden; /* 페이지 전체 스크롤 방지 */
+        }
+        
+        header {
+            background-color: #fff;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: fixed;
+            width: 100%;
+            z-index: 100;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 24px;
+            font-weight: 600;
+            color: #0d0f3d;
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo img {
+            height: 30px;
+        }
+        
+        .chat-button {
+            background-color: #4568ff;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .menu-button {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #666;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 30px;
+            height: 20px;
+        }
+        
+        .menu-button span {
+            display: block;
+            height: 2px;
+            width: 100%;
+            background-color: #666;
+            transition: all 0.3s;
+        }
+        
+        .chat-container {
+            margin-top: 60px;
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            max-width: 768px;
+            margin-left: auto;
+            margin-right: auto;
+            width: 100%;
+            padding-bottom: 250px; /* 증가된 하단 패딩 */
+        }
+        
+        .chat-message {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .bot-message {
+            align-items: flex-start;
+        }
+        
+        .user-message {
+            align-items: flex-end;
+        }
+        
+        .message-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        
+        .bot-header {
+            color: #0d0f3d;
+        }
+        
+        .user-header {
+            color: #666;
+        }
+        
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #4568ff;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            overflow: hidden;
+        }
+        
+        .avatar img {
+            width: 22px;
+            height: 22px;
+            object-fit: contain;
+            padding: 0;
+        }
+        
+        .guest-avatar {
+            background-color: #1d1e4b;
+        }
+        
+        .message-bubble {
+            padding: 12px 16px;
+            border-radius: 18px;
+            max-width: 80%;
+            word-break: break-word;
+            margin-top: 5px;
+        }
+        
+        .bot-bubble {
+            background-color: #f0f0f0;
+            color: #333;
+            border-top-left-radius: 5px;
+        }
+        
+        .user-bubble {
+            background-color: #1d1e4b;
+            color: white;
+            border-top-right-radius: 5px;
+        }
+        
+        .input-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 15px;
+            background-color: #fff;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 -1px 5px rgba(0,0,0,0.1);
+            z-index: 105; /* 중요: z-index 순서 조정 */
+        }
+        
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            max-width: 768px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        #user-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+        }
+        
+        .send-button {
+            position: absolute;
+            right: 10px;
+            background-color: #4568ff;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .send-button svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+        
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            margin: 10px 0;
+        }
+        
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            margin: 0 2px;
+            background-color: #4568ff;
+            border-radius: 50%;
+            display: inline-block;
+            opacity: 0.4;
+            animation: typing 1s infinite;
+        }
+        
+        .typing-indicator span:nth-child(1) {
+            animation-delay: 0s;
+        }
+        
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+        
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.6s;
+        }
+        
+        @keyframes typing {
+            0% { transform: scale(1); opacity: 0.4; }
+            50% { transform: scale(1.4); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 0.4; }
+        }
+        
+        /* 추가된 스타일 - 예상 질문 UI */
+        .suggested-questions {
+            position: fixed;
+            bottom: 70px;
+            left: 0;
+            right: 0;
+            padding: 15px;
+            background-color: #eef2ff; /* 배경색 변경 */
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            max-width: 768px;
+            margin: 0 auto;
+            z-index: 104; /* input-container보다 낮은 z-index */
+            border-top: 1px solid #ccd0e6;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.1); /* 그림자 강화 */
+        }
+        
+        .question-button {
+            background-color: #fff;
+            border: 1px solid #d0d0d0;
+            border-radius: 18px;
+            padding: 8px 15px;
+            font-size: 14px;
+            color: #4568ff;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        
+        .question-button:hover {
+            background-color: #4568ff;
+            color: #fff;
+            border-color: #4568ff;
+        }
+        
+        /* 스크롤 패딩 요소 추가 */
+        .scroll-padding {
+            width: 100%;
+            height: 250px; /* 패딩 높이 증가 */
+            visibility: hidden;
+            margin-top: 30px;
+        }
+        
+        /* 동영상 링크 버튼 스타일 */
+        .video-link {
+            display: inline-block;
+            background-color: #ff4545;
+            color: white;
+            border-radius: 20px;
+            padding: 8px 16px;
+            margin-top: 10px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .video-link:hover {
+            background-color: #e03535;
+            transform: scale(1.05);
+        }
+        
+        /* 메뉴얼 다운로드 링크 스타일 */
+        .manual-link {
+            display: inline-block;
+            background-color: #4568ff;
+            color: white;
+            border-radius: 20px;
+            padding: 8px 16px;
+            margin-top: 10px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .manual-link:hover {
+            background-color: #3557e8;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <div class="logo">
+                <img src="logo.svg" alt="Angel Robotics" style="height: 40px;">
+            </div>
+            <button class="chat-button">CHAT BOT</button>
+        </div>
+        <button class="menu-button">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </header>
+
+    <div class="chat-container" id="chat-container">
+        <!-- 메시지는 여기에 동적으로 추가될 것입니다 -->
+        <div class="scroll-padding" id="scroll-padding"></div>
+    </div>
+
+    <div class="input-container">
+        <div class="input-wrapper">
+            <input type="text" id="user-input" placeholder="질문을 입력하세요">
+            <button class="send-button" id="send-button">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="suggested-questions" id="suggested-questions">
+        <button class="question-button">착용 방법이 궁금해요</button>
+        <button class="question-button">엔젤라 앱은 무엇인가요?</button>
+        <button class="question-button">플러그인 기능이 궁금해요</button>
+        <button class="question-button">프리셋은 무엇인가요?</button>
+        <button class="question-button">동작 분석 기능이 궁금해요</button>
+        <button class="question-button">배터리는 얼마나 사용되나요?</button>
+        <button class="question-button">제품 무게는 얼마인가요?</button>
+        <button class="question-button">구성품이 무엇인가요?</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatContainer = document.getElementById('chat-container');
+            const userInput = document.getElementById('user-input');
+            const sendButton = document.getElementById('send-button');
+            
+            // 웹사이트 데이터 - 제품 및 회사 정보
+            const websiteData = {
+                company: {
+                    name: "엔젤로보틱스",
+                    foundation: "2017년",
+                    location: "서울특별시 금천구 가산디지털1로 168, C동 302호 (가산동, 우림라이온스밸리)",
+                    contact: {
+                        phone: "02-6952-6851",
+                        email: "support@angel-robotics.com",
+                        website: "https://angel-robotics.com"
+                    }
+                },
+                product: {
+                    name: "엔젤슈트 H10",
+                    type: "의료용 외골격 로봇",
+                    classification: "2등급 의료기기",
+                    weight: "약 2.8kg",
+                    batteryLife: "최대 120분",
+                    supportedWeight: "최대 100kg",
+                    features: [
+                        "외골격 로봇 보행 보조",
+                        "스마트 워크 모드",
+                        "코딩 모드",
+                        "모션 감지 기술"
+                    ]
+                }
+            };
+            
+            // PDF 정보
+            const pdf_info = {
+                manual: "엔젤슈트 H10 사용자 매뉴얼.pdf",
+                description: "제품 사용법, 안전 지침, 주의사항에 대한 상세 정보"
+            };
+            
+            // PDF에서 추출한 QA 데이터
+            const qaDatabase = [
+                {
+                    keywords: ["주의사항", "주의 사항", "주의해야 할", "사용시 주의", "caution", "warning", "안전 수칙", "경고"],
+                    answer: "엔젤슈트 H10 사용 주의사항:<br><br>1. 반드시 의사나 재활 전문가의 처방 및 지도하에 사용하세요.<br>2. 사용 전 제품의 상태를 점검하고 손상된 부분이 없는지 확인하세요.<br>3. 착용 시 벨트와 스트랩이 적절하게 조여졌는지 확인하세요.<br>4. 보행 훈련 시 낙상 방지를 위해 처음에는 평행봉이나 보행기를 함께 사용하세요.<br>5. 사용 중 통증이나 불편함이 느껴지면 즉시 사용을 중단하고 전문가에게 상담하세요.<br>6. 배터리는 제공된 정품 충전기로만 충전하세요.<br>7. 물이나 습기에 노출되지 않도록 주의하세요.<br>8. 직사광선이나 고온에 장시간 노출되지 않도록 보관하세요.<br><br><b>금기사항:</b><br>- 고관절 골절 또는 심각한 관절 손상이 있는 경우<br>- 급성 염증성 질환이 있는 경우<br>- 심각한 심혈관 질환이 있는 경우<br>- 심각한 인지 장애로 지시를 따를 수 없는 경우<br>- 피부 손상이나 개방성 상처가 있는 부위에 착용<br><br><b>안전을 위한 추가 주의사항:</b><br>- 첫 사용 시 반드시 전문가의 지도하에 사용하세요.<br>- 계단이나 경사로에서 사용 시 특별한 주의가 필요합니다.<br>- 장시간 사용 시 피로를 느낄 수 있으므로 적절한 휴식을 취하세요.<br>- 비정상적인 소리나 진동이 발생하면 즉시 사용을 중단하세요.<br>- 어린이의 손이 닿지 않는 곳에 보관하세요.<br>- 제품을 임의로 분해하거나 개조하지 마세요."
+                },
+                {
+                    keywords: ["적응증", "적용 질환", "적용 대상", "어떤 환자", "indication", "적응", "대상 환자", "적합한 환자"],
+                    answer: "엔젤슈트 H10의 주요 적응증(적용 대상)은 다음과 같습니다:<br><br>- 뇌졸중 후 편마비<br>- 불완전 척수 손상<br>- 뇌성마비<br>- 파킨슨병<br>- 다발성 경화증<br>- 근위축성 측삭 경화증<br>- 하지 근력 약화<br>- 고관절 수술 후 재활<br><br>제품 적용 여부는 환자의 상태와 재활 목표에 따라 달라질 수 있으므로, 반드시 의료 전문가와 상담하셔야 합니다."
+                },
+                {
+                    keywords: ["착용", "착용법", "입는 법", "착용 방법", "사용법", "how to wear"],
+                    answer: "엔젤슈트 H10 착용 방법:<br><br>1. 준비 단계<br>   - 제품의 전원이 꺼져 있는지 확인합니다.<br>   - 모든 벨트와 스트랩이 충분히 풀려있는지 확인합니다.<br>   - 평평한 곳에 앉은 상태에서 착용을 시작합니다.<br>   - 사용자의 신체 크기에 맞게 장비를 조절합니다.<br><br>2. 허리 벨트 착용<br>   - 허리 벨트를 장골능(골반 윗부분)에 정확히 위치시킵니다.<br>   - 양쪽 벨트를 앞으로 감싸 벨크로로 단단히 고정합니다.<br>   - 벨트가 골반에 단단히 고정되었지만 불편하지 않은지 확인합니다.<br>   - 벨트가 너무 느슨하거나 너무 꽉 조이지 않도록 적절히 조절합니다.<br><br>3. 허벅지 커프 착용<br>   - 좌우 허벅지 커프를 각 다리에 올바르게 배치합니다.<br>   - 커프의 앞/뒤 방향이 올바른지 확인합니다(방향 표시 확인).<br>   - 스트랩을 이용해 허벅지에 단단히 고정하되, 혈액 순환을 방해하지 않도록 적당한 강도로 조입니다.<br>   - 커프가 너무 높거나 낮지 않게 위치를 조정합니다.<br><br>4. 연결 및 조절<br>   - 허리 벨트와 허벅지 커프가 관절 연결부로 올바르게 연결되었는지 확인합니다.<br>   - 사용자의 체형에 맞게 관절 높이와 각도를 조절합니다.<br>   - 각 관절의 움직임이 자연스러운지 확인합니다.<br>   - 배터리를 올바른 위치에 삽입하고 전원 케이블을 연결합니다.<br><br>5. 전원 켜기 및 작동 확인<br>   - 전원 버튼을 3초간 길게 눌러 전원을 켭니다.<br>   - LED 표시등이 파란색으로 변하는지 확인합니다.<br>   - 태블릿 앱과 연결이 정상적으로 이루어졌는지 확인합니다.<br>   - 전원/비상 버튼을 빠르게 두 번 눌러 보행 보조 모드를 활성화합니다.<br><br>6. 최종 확인<br>   - 착용 후 서서 몇 걸음 걸어보며 불편함이 없는지 확인합니다.<br>   - 불편한 부분이 있으면 재조정합니다.<br>   - 처음 사용 시에는 반드시 전문가의 도움을 받습니다.<br>   - 낙상 방지를 위해 처음에는 평행봉이나 보행기를 함께 사용하는 것이 안전합니다.<br><br><a href=\"https://youtu.be/x0eOLwfj0ug\" target=\"_blank\" class=\"video-link\">착용방법 동영상 보기</a>"
+                },
+                {
+                    keywords: ["엔젤라", "angel'a", "angel a", "앱", "어플", "application", "앱 기능", "엔젤라 프로", "angel'a pro", "태블릿"],
+                    answer: "Angel'a PRO는 엔젤슈트 H10의 전용 어플리케이션으로, 모바일 태블릿을 이용해 훈련과 실시간 분석을 동시에 진행할 수 있습니다.<br><br>주요 기능:<br><br>1. 훈련 모드 및 세부 설정<br>   - 보행 보조 모드: 사용자의 보행 의도를 감지하여 자연스러운 보행 지원<br>   - 저항 훈련 모드: 근력 강화를 위한 다양한 강도의 저항 제공<br>   - 자유 관절 모드: 자유로운 움직임을 위한 무저항 모드<br>   - 세부 파라미터(토크, 속도, 민감도 등) 정밀 조정 가능<br><br>2. 플러그인 기능<br>   - 보행 보조, 저항 훈련, 앉기/서기, 부하 조절, 관절 제한 등 다양한 플러그인<br>   - 환자 상태와 재활 목표에 맞는 맞춤형 플러그인 조합 설정<br>   - 플러그인별 세부 파라미터 조정 및 저장 기능<br><br>3. 동작 분석 기능<br>   - 관절각, 토크, 속도 등 운동학적 지표 실시간 측정<br>   - 보행 주기, 보폭, 분속수 등 보행 패턴 분석<br>   - 3D 시각화 그래프로 직관적인 데이터 제공<br>   - 좌우 대칭성 및 안정성 평가<br><br>4. 세션 기록 기능<br>   - 훈련 세션별 상세 데이터 자동 저장<br>   - 일/주/월별 훈련 기록 관리 및 분석<br>   - 장기간 변화 추이 그래프 제공<br>   - PDF/CSV 형식의 보고서 생성 및 공유<br><br>5. 프리셋 기능<br>   - 사용자별, 훈련 목적별 맞춤 설정 저장<br>   - 저장된 프리셋 간편 불러오기<br>   - 치료사별 맞춤 프리셋 관리<br><br>6. 사용자 관리<br>   - 다중 사용자 프로필 관리<br>   - 사용자별 훈련 이력 및 설정 분리 저장<br>   - 비밀번호 보호 및 데이터 백업 기능<br><br>7. 시스템 관리<br>   - 펌웨어 업데이트 및 시스템 진단<br>   - 배터리 모니터링 및 전력 관리<br>   - 오류 로그 및 문제 해결 가이드<br><br>엔젤라 앱은 직관적인 인터페이스로 설계되어 환자와 의료진 모두 쉽게 사용할 수 있으며, 맞춤형 훈련과 상세한 데이터 분석을 통해 재활 효과를 극대화합니다."
+                },
+                {
+                    keywords: ["플러그인", "plugin", "확장 기능"],
+                    answer: "Angel'a PRO 플러그인 기능:<br><br>플러그인은 엔젤라 앱의 핵심 확장 기능으로, 다양한 훈련 목적에 맞게 선택적으로 적용할 수 있습니다.<br><br>주요 플러그인:<br><br>1. 보행 보조 플러그인<br>   - 실시간 동작 인지 알고리즘으로 자연스러운 보행 지원<br>   - 스마트 보조 기능으로 사용자의 움직임 의도 파악<br>   - 각 개인에 맞춤화된 보행 패턴 학습 및 적용<br><br>2. 저항 훈련 플러그인<br>   - 사용자 근력 강화를 위한 저항력 제공<br>   - 단계별 저항 강도 조절 기능<br>   - 근력 변화 추적 및 피드백<br><br>3. 앉기/서기 플러그인<br>   - 앉고 일어서는 동작 보조<br>   - 일상생활 활동 훈련 지원<br>   - 균형감각 향상 보조<br><br>4. 부하 조절 플러그인<br>   - 각 동작별 보조력 세부 조정<br>   - 훈련 난이도의 정밀한 설정<br>   - 점진적 재활 과정 지원<br><br>5. 관절 제한 플러그인<br>   - 관절 움직임 범위 제한 및 조정<br>   - 안전한 움직임 범위 내에서의 훈련 보장<br>   - 과도한 움직임 방지로 안전성 강화<br><br>플러그인은 치료사가 환자 상태에 맞게 선택하여 적용할 수 있으며, 각 플러그인은 세부 파라미터 조정이 가능합니다."
+                },
+                {
+                    keywords: ["프리셋", "preset", "저장", "불러오기", "설정 저장"],
+                    answer: "Angel'a PRO 프리셋 기능:<br><br>프리셋은 플러그인의 세부 설정을 저장하고 관리하는 기능으로, 맞춤형 훈련 환경을 쉽게 구성할 수 있게 합니다.<br><br>주요 특징:<br><br>1. 설정 저장 및 불러오기<br>   - 플러그인의 모든 세부 설정값을 프리셋으로 저장<br>   - 저장된 프리셋을 빠르게 불러와 즉시 훈련 시작<br><br>2. 사용자별 맞춤 설정 관리<br>   - 각 환자별로 최적화된 설정 프로필 관리<br>   - 다수 환자 관리 시 효율적인 설정 적용<br><br>3. 훈련 난이도 및 목적별 프리셋<br>   - 단계별 재활 과정에 맞는 다양한 프리셋 구성<br>   - 훈련 목적(보행, 근력, 균형 등)에 따른 설정 최적화<br><br>4. 치료사 맞춤 설정<br>   - 치료사가 환자별 최적 설정을 프리셋으로 저장<br>   - 일관된 훈련 제공으로 재활 효과 극대화<br><br>프리셋을 활용하면 매번 복잡한 설정 과정 없이 최적화된 훈련을 바로 시작할 수 있어 시간 효율성이 높아지고 일관된 훈련 품질을 유지할 수 있습니다."
+                },
+                {
+                    keywords: ["동작 분석", "동작분석", "모션 분석", "motion analysis", "분석 기능"],
+                    answer: "Angel'a PRO 동작 분석 기능:<br><br>동작 분석은 사용자의 움직임을 정밀하게 측정하고 분석하여 재활 효과를 객관적으로 평가하는 기능입니다.<br><br>주요 특징:<br><br>1. 운동학적 지표 측정<br>   - 관절각: 보행 중 고관절의 움직임 각도 측정<br>   - 토크: 각 관절에 가해지는 힘의 크기 분석<br>   - 속도: 움직임의 속도 및 가속도 데이터 수집<br><br>2. 보행 주기 분석<br>   - 스윙/스탠스 비율: 보행 단계별 시간 분석<br>   - 보폭: 걸음 길이 및 좌우 대칭성 측정<br>   - 분속수: 분당 걸음 수 측정 및 추적<br><br>3. 시공간적 지표 분석<br>   - 보행 패턴의 시간적, 공간적 특성 분석<br>   - 좌우 대칭성 및 안정성 평가<br>   - 3D 시각화 그래프로 직관적 데이터 제공<br><br>4. 분석 보고서 생성<br>   - 훈련 세션별 상세 분석 보고서 자동 생성<br>   - 장기간 변화 추이 그래프 제공<br>   - 의료진을 위한 전문적 데이터 정리<br><br>동작 분석 기능은 객관적인 데이터를 기반으로 재활 훈련의 효과를 측정하고, 환자의 진행 상황을 정확하게 추적하여 맞춤형 치료 계획 수립에 도움을 줍니다."
+                },
+                {
+                    keywords: ["세션 기록", "기록", "훈련 기록", "데이터 저장", "history"],
+                    answer: "Angel'a PRO 세션 기록 기능:<br><br>세션 기록은 모든 훈련 데이터를 자동으로 저장하고 관리하여 재활 과정을 체계적으로 추적할 수 있게 해주는 기능입니다.<br><br>주요 특징:<br><br>1. 훈련 데이터 자동 저장<br>   - 모든 훈련 세션의 설정값과 결과 자동 기록<br>   - 날짜/시간별 훈련 이력 관리<br>   - 훈련 시간, 거리, 설정된 모드 등 상세 정보 저장<br><br>2. 개인별 훈련 계획 관리<br>   - 환자별 훈련 계획 수립 및 진행 상황 모니터링<br>   - 목표 달성률 및 진행도 시각화<br>   - 개인별 맞춤 훈련 일정 관리<br><br>3. 장기간 변화 추이 분석<br>   - 시간에 따른 재활 진행 상황 그래프 제공<br>   - 주요 지표별 개선도 측정<br>   - 재활 효과의 객관적 평가 지원<br><br>4. 리포트 생성 및 공유<br>   - 의료진을 위한 전문적인 분석 리포트 생성<br>   - 환자용 간편 보고서 제공<br>   - 데이터 내보내기 및 공유 기능<br><br>세션 기록 기능을 통해 치료사는 환자의 재활 과정을 지속적으로 모니터링하고, 데이터에 기반한 맞춤형 치료 계획을 수립할 수 있습니다. 또한 환자도 자신의 재활 진행 상황을 확인하며 동기 부여를 받을 수 있습니다."
+                },
+                {
+                    keywords: ["사용방법", "사용 방법", "조작", "작동법", "조작법", "켜는 법", "전원 켜기", "전원 끄기", "모드 전환", "모드 변경", "운전", "조작 방법"],
+                    answer: "엔젤슈트 H10 사용방법:<br><br>1. 전원 켜기/끄기<br>   - 켜기: 전원 버튼을 3초간 길게 누름<br>   - 끄기: 전원 버튼을 5초간 길게 누름<br>   - 상태표시등: 파란색(정상), 빨간색(오류), 초록색(충전완료)<br><br>2. 작동 모드<br>   - 보행 보조 모드: 사용자의 고관절 움직임 감지 후 자동 보조<br>   - 저항 훈련 모드: 근력 강화를 위한 저항력 제공<br>   - 자유 관절 모드: 모터 동력 없이 자유롭게 움직임 허용<br><br>3. 모드 전환 방법<br>   - 전원/비상 버튼 두 번 클릭: 보행 보조 모드 활성화<br>   - 태블릿 앱에서 선택: 다양한 세부 모드 설정 가능<br><br>4. 비상 정지<br>   - 비상 상황 시 전원/비상 버튼 한 번 클릭<br>   - 모든 모터 작동 즉시 중지<br><br>5. 충전 방법<br>   - 제품 전원을 끈 상태에서 전용 충전기 연결<br>   - 충전 중 LED 빨간색 점등<br>   - 충전 완료 LED 초록색으로 변경<br><br>6. 조절 방법<br>   - 허리 벨트: 양쪽 조임 끈을 이용해 신체에 맞게 조절<br>   - 허벅지 커프: 벨크로 스트랩으로 허벅지 둘레에 맞게 조절<br>   - 각도 조절: 제공된 조절 도구로 사용자 체형에 맞게 조정<br><br>자세한 사용법은 제공된 사용자 매뉴얼을 참조하시고, 처음 사용 시에는 전문가의 도움을 받는 것이 좋습니다."
+                },
+                {
+                    keywords: ["엔젤라 프로", "angel'a pro", "앱 화면", "앱 메뉴", "앱 기능", "앱 설정", "인터페이스", "ui", "화면 구성", "태블릿 앱", "태블릿 화면"],
+                    answer: "Angel'a PRO 앱 인터페이스 및 기능 상세:<br><br>1. 메인 화면 구성<br>   - 사용자 정보 패널: 환자 이름, 상태, 훈련 요약 표시<br>   - 연결 상태 표시: 제품과 앱의 실시간 연결 상태 확인<br>   - 배터리 잔량: 제품 배터리 상태 실시간 모니터링<br>   - 모드 선택 탭: 훈련 모드, 설정, 분석, 기록 등 주요 메뉴<br><br>2. 훈련 모드 설정 화면<br>   - 모드 선택: 보행 보조, 저항 훈련, 자유 관절 등 선택<br>   - 강도 조절: 보조력/저항력 단계별 조절 슬라이더(1-10)<br>   - 민감도 설정: 동작 감지 민감도 조절 옵션<br>   - 속도 제한: 최대 동작 속도 제한 설정<br><br>3. 플러그인 관리 화면<br>   - 활성화된 플러그인 목록 표시<br>   - 플러그인별 상세 설정 패널<br>   - 플러그인 활성화/비활성화 토글 버튼<br>   - 새 플러그인 추가 및 업데이트 관리<br><br>4. 실시간 모니터링 화면<br>   - 관절각 그래프: 실시간 고관절 움직임 각도 표시<br>   - 토크 측정값: 각 관절에 적용되는 토크 수치 표시<br>   - 보행 주기 분석: 스윙/스탠스 비율 실시간 표시<br>   - 좌우 균형 지표: 좌우 대칭성 실시간 분석<br><br>5. 기록 관리 화면<br>   - 일/주/월별 훈련 기록 달력 뷰<br>   - 훈련 세션별 상세 데이터 그래프<br>   - 진행도 차트: 주요 지표별 개선 추이<br>   - 보고서 생성 및 내보내기 기능<br><br>6. 설정 화면<br>   - 사용자 프로필 관리: 환자 정보 등록/수정<br>   - 기기 설정: 펌웨어 업데이트, 연결 설정<br>   - 알림 설정: 훈련 알림, 오류 알림 등 설정<br>   - 언어 및 단위 설정: 앱 표시 언어 및 측정 단위 변경<br><br>Angel'a PRO 앱은 직관적인 터치 인터페이스로 설계되어 있어 모든 기능에 쉽게 접근할 수 있으며, 태블릿에 최적화된 화면 구성으로 치료사와 환자 모두 편리하게 사용할 수 있습니다."
+                },
+                {
+                    keywords: ["사용설명서", "메뉴얼", "manual", "사용 설명서", "매뉴얼", "사용법", "메뉴얼 다운", "설명서", "pdf", "매뉴얼 다운"],
+                    answer: "엔젤슈트 H10 사용설명서:<br><br>상세한 제품 사용법과 기능 설명, 유지 관리 방법 등이 포함된 사용자 메뉴얼을 다운로드할 수 있습니다.<br><br>사용설명서에는 다음과 같은 내용이 포함되어 있습니다:<br><br>1. 제품 구성 및 각 부분 명칭<br>2. 초기 설정 및 기본 작동법<br>3. 배터리 충전 및 관리 방법<br>4. 문제 해결 가이드<br>5. 유지 보수 및 세척 방법<br>6. 안전 수칙 및 주의사항<br>7. 기술 사양 및 보증 정보<br><br><a href=\"angel_manual.pdf\" download class=\"manual-link\">사용자 메뉴얼 PDF 다운로드</a><br><br>추가 질문이나 기술 지원이 필요하시면 아래 연락처로 문의해 주세요:<br>- 전화: 02-6376-5923<br>- 이메일: support@angel-robotics.com"
+                },
+                {
+                    keywords: ["배터리", "충전", "전원", "battery", "충전 시간", "사용 시간", "전력", "충전기", "배터리 수명"],
+                    answer: "엔젤슈트 H10 배터리 정보:<br><br>1. 사양<br>   - 유형: 리튬이온 배터리<br>   - 용량: 2,600mAh<br>   - 전압: 24V<br><br>2. 사용 시간<br>   - 최대 연속 사용: 약 120분(2시간)<br>   - 실제 사용 시간은 사용 환경과 강도에 따라 달라질 수 있습니다<br><br>3. 충전<br>   - 완전 충전 시간: 약 2시간<br>   - 전용 충전기 사용 필수<br>   - 충전 중 LED 빨간색 점등<br>   - 충전 완료 LED 초록색으로 변경<br><br>4. 배터리 관리<br>   - 사용 후 충전 권장<br>   - 과충전 및 과방전 방지 기능 내장<br>   - 3개월 이상 미사용 시 50% 충전 상태로 보관 권장<br>   - 배터리 교체는 공인 서비스 센터에서 진행<br><br>5. 주의사항<br>   - 고온 환경(40°C 이상)에서 사용 및 보관 금지<br>   - 물이나 습기에 노출되지 않도록 주의<br>   - 임의로 배터리 분해 금지<br>   - 정품 충전기만 사용"
+                },
+                {
+                    keywords: ["무게", "weight", "kg", "킬로그램", "얼마나 무거운", "중량", "가벼운", "가볍", "크기", "사이즈", "size", "규격", "제품 사양"],
+                    answer: "엔젤슈트 H10 무게 및 제품 사양:<br><br>1. 무게<br>   - 본체 무게: 약 2.8kg<br>   - 배터리 포함 총 무게: 약 3.2kg<br><br>2. 크기 및 구조<br>   - 허리 벨트: 높이 12cm, 조절 가능한 허리둘레<br>   - 허벅지 커프: 길이 25cm, 조절 가능한 허벅지 둘레<br>   - 착용 조절 범위: 신장 150-190cm<br>   - 체중 지원: 최대 100kg<br><br>3. 인체공학적 설계<br>   - 체형에 맞는 다양한 사이즈 조절 가능<br>   - 가볍고 유연한 구조로 이동성 우수<br>   - 옷 위에 착용 가능한 디자인<br><br>4. 기술 사양<br>   - 모터 유형: 브러시리스 DC 모터<br>   - 최대 토크: 12Nm<br>   - 센서: 9축 IMU, 압력 센서<br>   - 작동 온도: 0°C ~ 40°C<br><br>엔젤슈트 H10은 경량 소재와 최적화된 설계로 사용자의 활동성을 최대한 보장하면서도 충분한 보조력을 제공합니다."
+                },
+                {
+                    keywords: ["구성품", "포함", "패키지", "부속품", "부품", "내용물", "component", "구성", "박스", "구매시", "기본 제공"],
+                    answer: "엔젤슈트 H10 구성품:<br><br>- 엔젤슈트 H10 본체<br>- 배터리팩<br>- 배터리 충전기<br>- Angel'a PRO 태블릿<br>- 사용설명서<br><br>제품은 정품임을 보증하는 품질 검사를 거쳐 제공됩니다."
+                }
+            ];
+            
+            // 스크롤 패딩 요소 추가 (초기화)
+            if (!document.getElementById('scroll-padding')) {
+                const paddingDiv = document.createElement('div');
+                paddingDiv.className = 'scroll-padding';
+                paddingDiv.id = 'scroll-padding';
+                chatContainer.appendChild(paddingDiv);
+            }
+            
+            // 초기 메시지 추가
+            addBotMessage("Angel Assistant", "엔젤슈트 H10에 대해 궁금한점이 있으면 질문해주세요.");
+            
+            // 첫 로드 시 스크롤 위치 조정
+            setTimeout(() => {
+                scrollToBottom();
+            }, 300);
+            
+            // 스크롤을 최하단으로 이동하는 함수
+            function scrollToBottom() {
+                setTimeout(() => {
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }, 150); // 지연 시간 증가
+            }
+            
+            // 메시지 표시 함수
+            function displayMessage(sender, text, isUser) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `chat-message ${isUser ? 'user-message' : 'bot-message'}`;
+                
+                const headerDiv = document.createElement('div');
+                headerDiv.className = `message-header ${isUser ? 'user-header' : 'bot-header'}`;
+                
+                const avatar = document.createElement('div');
+                avatar.className = `avatar ${isUser ? 'guest-avatar' : ''}`;
+                
+                if (isUser) {
+                    // guest.svg 이미지 사용
+                    const img = document.createElement('img');
+                    img.src = 'guest.svg';
+                    img.alt = 'Guest';
+                    avatar.textContent = '';
+                    avatar.appendChild(img);
+                } else {
+                    // symbol.svg 이미지 사용
+                    const img = document.createElement('img');
+                    img.src = 'symbol.svg';
+                    img.alt = 'Angel';
+                    avatar.textContent = '';
+                    avatar.appendChild(img);
+                }
+                
+                const senderName = document.createElement('div');
+                senderName.textContent = sender;
+                
+                headerDiv.appendChild(avatar);
+                headerDiv.appendChild(senderName);
+                
+                const bubbleDiv = document.createElement('div');
+                bubbleDiv.className = `message-bubble ${isUser ? 'user-bubble' : 'bot-bubble'}`;
+                
+                try {
+                    // HTML 태그 사용으로 인한 오류 방지
+                    bubbleDiv.innerHTML = text;
+                } catch (e) {
+                    console.error("HTML 파싱 오류:", e);
+                    // HTML 파싱 오류시 텍스트로 표시
+                    bubbleDiv.textContent = text;
+                }
+                
+                messageDiv.appendChild(headerDiv);
+                messageDiv.appendChild(bubbleDiv);
+                
+                // 스크롤 패딩 요소 앞에 새 메시지를 삽입
+                const scrollPadding = document.getElementById('scroll-padding');
+                if (scrollPadding) {
+                    chatContainer.insertBefore(messageDiv, scrollPadding);
+                } else {
+                    chatContainer.appendChild(messageDiv);
+                    // 패딩 요소가 없는 경우 새로 추가
+                    const newPadding = document.createElement('div');
+                    newPadding.className = 'scroll-padding';
+                    newPadding.id = 'scroll-padding';
+                    chatContainer.appendChild(newPadding);
+                }
+                
+                // 스크롤을 최하단으로
+                scrollToBottom();
+            }
+            
+            // 타이핑 표시기 생성
+            function createTypingIndicator() {
+                const typingDiv = document.createElement('div');
+                typingDiv.className = 'typing-indicator';
+                typingDiv.id = 'typing-indicator';
+                
+                for (let i = 0; i < 3; i++) {
+                    const dot = document.createElement('span');
+                    typingDiv.appendChild(dot);
+                }
+                
+                return typingDiv;
+            }
+            
+            // 타이핑 표시기 추가
+            const typingIndicator = createTypingIndicator();
+            chatContainer.appendChild(typingIndicator);
+            
+            // 타이핑 표시기 표시/숨기기 함수
+            function showTypingIndicator(show) {
+                typingIndicator.style.display = show ? 'flex' : 'none';
+                if (show) {
+                    scrollToBottom();
+                }
+            }
+            
+            // 봇 메시지 추가 함수
+            function addBotMessage(sender, text) {
+                displayMessage(sender, text, false);
+            }
+            
+            // 타이핑 효과로 메시지를 표시하는 함수
+            function displayBotMessageWithTyping(sender, text) {
+                return new Promise((resolve) => {
+                    showTypingIndicator(true);
+                    
+                    // 메시지 길이와 상관없이 짧은 시간만 타이핑 효과 표시
+                    const typingDelay = 500; // 0.5초로 짧게 조정
+                    
+                    setTimeout(() => {
+                        showTypingIndicator(false);
+                        displayMessage(sender, text, false);
+                        // 메시지 표시 후 다시 한번 스크롤
+                        scrollToBottom();
+                        resolve();
+                    }, typingDelay);
+                });
+            }
+            
+            // 답변 포맷터 함수
+            function formatAnswer(text) {
+                // 텍스트 길이에 상관없이 원본 그대로 표시 (짤림 방지)
+                return text;
+            }
+            
+            // 질문에 대한 답변 찾기
+            function findAnswer(question) {
+                const lowerQuestion = question.toLowerCase();
+                
+                // 질문과 답변 데이터베이스에서 가장 적합한 답변 찾기
+                for (const qa of qaDatabase) {
+                    for (const keyword of qa.keywords) {
+                        if (lowerQuestion.includes(keyword.toLowerCase())) {
+                            return formatAnswer(qa.answer);
+                        }
+                    }
+                }
+                
+                // 기본 응답
+                return "죄송합니다. 질문에 대한 정확한 답변을 찾지 못했습니다.<br><br>" + 
+                       "다음과 같이 더 구체적으로 질문해 주세요:<br>" + 
+                       "- 착용 방법을 알려주세요<br>" + 
+                       "- 어떤 질환에 사용할 수 있나요?<br>" + 
+                       "- 엔젤라 앱은 무엇인가요?<br>" + 
+                       "- 플러그인 기능은 어떤 것이 있나요?<br>" + 
+                       "- 제품 사양은 어떻게 되나요?<br>" + 
+                       "- 배터리 지속 시간은 얼마인가요?";
+            }
+            
+            // 메시지 전송 함수
+            async function handleSendMessage() {
+                const message = userInput.value.trim();
+                
+                if (message === '') return;
+                
+                try {
+                    // 사용자 메시지 표시
+                    displayMessage('guest', message, true);
+                    
+                    // 입력창 초기화
+                    userInput.value = '';
+                    
+                    // 봇 응답 생성 및 표시
+                    const answer = findAnswer(message);
+                    
+                    // 타이핑 효과 및 스크롤 처리 최적화
+                    try {
+                        await displayBotMessageWithTyping('Angel Assistant', answer);
+                        // 마지막으로 다시 한번 스크롤
+                        scrollToBottom();
+                    } catch (displayError) {
+                        console.error('메시지 표시 오류:', displayError);
+                        // 타이핑 효과 없이 직접 표시 시도
+                        displayMessage('Angel Assistant', answer, false);
+                        scrollToBottom();
+                    }
+                } catch (error) {
+                    console.error('오류 발생:', error);
+                    // 오류 처리를 위한 메시지 표시
+                    try {
+                        displayMessage('Angel Assistant', 
+                            "죄송합니다. 응답 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.", false);
+                    } catch (e) {
+                        console.error('최종 오류 메시지 표시 실패:', e);
+                        alert("채팅 처리 중 오류가 발생했습니다. 페이지를 새로고침해 주세요.");
+                    }
+                }
+            }
+            
+            // 전송 버튼 클릭 이벤트
+            sendButton.addEventListener('click', handleSendMessage);
+            
+            // 입력창 Enter 키 이벤트
+            userInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    handleSendMessage();
+                }
+            });
+            
+            // 예상 질문 버튼 이벤트 리스너 추가
+            const questionButtons = document.querySelectorAll('.question-button');
+            questionButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    userInput.value = this.textContent;
+                    handleSendMessage();
+                });
+            });
+        });
+    </script>
+</body>
+</html>
